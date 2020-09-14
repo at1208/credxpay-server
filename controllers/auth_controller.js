@@ -168,6 +168,22 @@ exports.saveUserDetails = (req, res) => {
 
 }
 
+exports.getUserDetailById = (req, res) => {
+  const { _id } = req.params;
+  User.findById(_id)
+     .select('name email phone')
+     .exec((err, result) => {
+       if(err){
+         return res.status(400).json({
+           error: err
+         })
+       }
+       res.status(200).json({
+         result
+       })
+     })
+}
+
 
 
 //  exports.signout = (req, res) => {
