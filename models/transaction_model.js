@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const { ObjectId } = mongoose.Schema;
 
-const paymentSchema = mongoose.Schema({
+const transactionSchema = mongoose.Schema({
   payer: {
     type: ObjectId,
     ref: 'User'
@@ -30,12 +30,20 @@ const paymentSchema = mongoose.Schema({
     type: String,
     default: null
   },
+  payout_error: {
+    type: String,
+    default: null
+  },
+  payout_mode: {
+    type: String,
+    default: null
+  },
   status: {
     type: 'String',
-    enum:['FAIL','UNVERIFIED_IN_PROCESS', 'VERIFIED_IN_PROCESS', 'SUCCESS'],
-    default: 'FAIL'
+    enum:['payment failed','payment unverified', 'payment verified', 'payout failed', 'payout successful'],
+    default: 'payment failed'
   }
 },{ timestamps: true }
 )
 
-module.exports = mongoose.model('Payment', paymentSchema)
+module.exports = mongoose.model('Transaction', transactionSchema)

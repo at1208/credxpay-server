@@ -1,5 +1,5 @@
 const Beneficiary = require('../models/beneficiary_model');
-const Payment = require('../models/payment_model');
+const Transaction = require('../models/transaction_model');
 const Razorpay = require('razorpay');
 const { v4: uuidv4 } = require('uuid');
 const crypto = require('crypto');
@@ -44,12 +44,12 @@ module.exports.create_payment = (req,res) => {
        })
      }
      // after successfull razorpay order created save payment details into the database
-      const newPayment = Payment({ payer: response.payer,
+      const newtransaction = Transaction({ payer: response.payer,
                                    beneficiary: beneficiary_id,
                                    razorpay_order_id: order.id,
-                                   status: 'UNVERIFIED_IN_PROCESS' })
+                                   status: 'payment unverified' })
 
-      await newPayment.save((err, response) => {
+      await newtransaction.save((err, response) => {
          if(err){
            return res.status(400).json({
              error: errorHandler(err)
@@ -57,7 +57,7 @@ module.exports.create_payment = (req,res) => {
          }
           return res.status(200).json({
            orderID: order.id,
-           message: 'payment created successfuly'
+           message: 'payment details saved successfuly'
             })
         })
      })
@@ -79,8 +79,8 @@ module.exports.verifyPayment = (req, res) => {
 
 if(isSignatureValid){
   //if generatedSignature matched with the given razorpay_signature then update the payment status to Verified
-  const update_info = {razorpay_payment_id:  razorpay_payment_id, status: 'VERIFIED_IN_PROCESS'}
-  return  Payment.findOneAndUpdate({ razorpay_order_id: razorpay_order_id },update_info,{ new: true })
+  const update_info = {razorpay_payment_id:  razorpay_payment_id, status: 'payment verified'}
+  return   Transaction.findOneAndUpdate({ razorpay_order_id: razorpay_order_id },update_info,{ new: true })
         .exec((err, result) => {
           if(err || !result){
             return res.status(400).json({
@@ -100,7 +100,7 @@ return res.status(400).json({
 
 module.exports.getPaymentsById = (req, res) => {
   const { payerID } = req.params;
-  Payment.find({ payer: payerID })
+   Transaction.find({ payer: payerID })
       .sort({ createdAt: -1 })
       .populate('payer', 'name email phone')
       .populate('beneficiary', 'beneficiary_name beneficiary_account ifsc_code amount purpose')
@@ -120,7 +120,7 @@ module.exports.getPaymentsById = (req, res) => {
 
 module.exports.getPaymentsByUserId = (req, res) => {
   const { userID } = req.params;
-  Payment.find({ payer: userID })
+   Transaction.find({ payer: userID })
       .sort({ createdAt: -1 })
       .populate('payer', 'name email phone verified role')
       .populate('beneficiary', 'beneficiary_name beneficiary_account ifsc_code amount purpose')
@@ -139,7 +139,7 @@ module.exports.getPaymentsByUserId = (req, res) => {
 
 
 module.exports.getAllPayments = (req, res) => {
-  Payment.find()
+   Transaction.find()
       .sort({ createdAt: -1 })
       .populate('payer', 'name email phone verified role')
       .populate('beneficiary', 'beneficiary_name beneficiary_account ifsc_code amount purpose')
@@ -160,7 +160,7 @@ module.exports.getAllPayments = (req, res) => {
 module.exports.getBeneficiaryId = (req, res) => {
      const { razorpay_payment_id } = req.params;
 
-     Payment.findOne({ razorpay_payment_id })
+      Transaction.findOne({ razorpay_payment_id })
       .select('beneficiary')
        .exec((err, result) => {
          if(err){

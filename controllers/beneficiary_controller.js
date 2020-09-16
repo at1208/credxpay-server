@@ -30,6 +30,4 @@ module.exports.create_beneficiary = (req,res) => {
  })
 }
 
-module.exports.get_beneficiary_id = (req, res) => {
-  
-}
+ 
